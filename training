@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Voice-to-Text Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .record-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .record-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(255, 107, 107, 0.4);
+        }
+
+        .record-btn.recording {
+            background: linear-gradient(135deg, #ff4757, #c44569);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .status {
+            font-size: 1.1rem;
+            margin: 20px 0;
+            min-height: 30px;
+            font-weight: 500;
+        }
+
+        .status.listening {
+            color: #ff4757;
+        }
+
+        .status.processing {
+            color: #3742fa;
+        }
+
+        .language-select {
+            margin: 20px 0;
+        }
+
+        .language-select select {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+        }
+
+        .text-output {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            min-height: 200px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .text-output.has-content {
+            background: #fff;
+            border-color: #4facfe;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+            color: #333;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #d299c2, #fef9d7);
+            color: #333;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .error-message {
+            background: #ffe6e6;
+            color: #d63031;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #d63031;
+        }
+
+        .success-message {
+            background: #e6ffe6;
+            color: #00b894;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #00b894;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .compatibility-info {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 0.9rem;
+            color: #1565c0;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .record-btn {
+                width: 100px;
+                height: 100px;
+                font-size: 1rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎤 Voice-to-Text</h1>
+            <p>Universal speech recognition for all devices</p>
+        </div>
+
+        <div class="main-content">
+            <div class="compatibility-info" id="compatibilityInfo">
+                <strong>Browser Compatibility:</strong> This app works on Chrome, Edge, Safari (iOS 14.5+), and other modern browsers with Web Speech API support.
+            </div>
+
+            <div class="controls">
+                <button class="record-btn" id="recordBtn">
+                    🎤<br>Start Recording
+                </button>
+                
+                <div class="status" id="status">Click the microphone to start recording</div>
+                
+                <div class="language-select">
+                    <label for="languageSelect">Language: </label>
+                    <select id="languageSelect">
+                        <option value="en-US">English (US)</option>
+                        <option value="en-GB">English (UK)</option>
+                        <option value="es-ES">Spanish</option>
+                        <option value="fr-FR">French</option>
+                        <option value="de-DE">German</option>
+                        <option value="it-IT">Italian</option>
+                        <option value="pt-BR">Portuguese (Brazil)</option>
+                        <option value="ru-RU">Russian</option>
+                        <option value="ja-JP">Japanese</option>
+                        <option value="ko-KR">Korean</option>
+                        <option value="zh-CN">Chinese (Simplified)</option>
+                        <option value="hi-IN">Hindi</option>
+                        <option value="ar-SA">Arabic</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="text-output" id="textOutput">Your converted text will appear here...</div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="copyBtn">📋 Copy Text</button>
+                <button class="btn btn-secondary" id="downloadBtn">💾 Download</button>
+                <button class="btn btn-success" id="shareBtn" style="display: none;">📤 Share</button>
+                <button class="btn btn-secondary" id="clearBtn">🗑️ Clear</button>
+            </div>
+
+            <div id="messageArea"></div>
+        </div>
+
+        <div class="footer">
+            <p>Works on Windows, iOS, Android, and all modern browsers • No installation required</p>
+            <p>Built with Web Speech API • Privacy-focused (processing happens locally when possible)</p>
+        </div>
+    </div>
+
+    <script>
+        class VoiceToTextConverter {
+            constructor() {
+                this.recognition = null;
+                this.isRecording = false;
+                this.finalTranscript = '';
+                this.interimTranscript = '';
+                
+                this.initializeElements();
+                this.checkBrowserSupport();
+                this.setupEventListeners();
+                this.initializeSpeechRecognition();
+            }
+
+            initializeElements() {
+                this.recordBtn = document.getElementById('recordBtn');
+                this.status = document.getElementById('status');
+                this.textOutput = document.getElementById('textOutput');
+                this.copyBtn = document.getElementById('copyBtn');
+                this.downloadBtn = document.getElementById('downloadBtn');
+                this.shareBtn = document.getElementById('shareBtn');
+                this.clearBtn = document.getElementById('clearBtn');
+                this.languageSelect = document.getElementById('languageSelect');
+                this.messageArea = document.getElementById('messageArea');
+                this.compatibilityInfo = document.getElementById('compatibilityInfo');
+            }
+
+            checkBrowserSupport() {
+                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                    this.showError('Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari on iOS 14.5+');
+                    this.recordBtn.disabled = true;
+                    return false;
+                }
+
+                // Show share button on mobile devices
+                if (navigator.share) {
+                    this.shareBtn.style.display = 'inline-block';
+                }
+
+                return true;
+            }
+
+            initializeSpeechRecognition() {
+                if (!this.checkBrowserSupport()) return;
+
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                this.recognition = new SpeechRecognition();
+
+                this.recognition.continuous = true;
+                this.recognition.interimResults = true;
+                this.recognition.lang = this.languageSelect.value;
+
+                this.recognition.onstart = () => {
+                    this.isRecording = true;
+                    this.updateRecordButton();
+                    this.updateStatus('Listening... Speak now', 'listening');
+                };
+
+                this.recognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    let finalTranscript = this.finalTranscript;
+
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript + ' ';
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+
+                    this.finalTranscript = finalTranscript;
+                    this.interimTranscript = interimTranscript;
+                    this.updateTextOutput();
+                };
+
+                this.recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    this.handleSpeechError(event.error);
+                };
+
+                this.recognition.onend = () => {
+                    this.isRecording = false;
+                    this.updateRecordButton();
+                    if (this.finalTranscript.trim()) {
+                        this.updateStatus('Recording complete', 'processing');
+                        this.addTimestamp();
+                    } else {
+                        this.updateStatus('No speech detected. Click to try again');
+                    }
+                };
+            }
+
+            setupEventListeners() {
+                this.recordBtn.addEventListener('click', () => this.toggleRecording());
+                this.copyBtn.addEventListener('click', () => this.copyText());
+                this.downloadBtn.addEventListener('click', () => this.downloadText());
+                this.shareBtn.addEventListener('click', () => this.shareText());
+                this.clearBtn.addEventListener('click', () => this.clearText());
+                this.languageSelect.addEventListener('change', () => this.changeLanguage());
+            }
+
+            toggleRecording() {
+                if (!this.recognition) {
+                    this.showError('Speech recognition not available');
+                    return;
+                }
+
+                if (this.isRecording) {
+                    this.recognition.stop();
+                } else {
+                    this.recognition.start();
+                }
+            }
+
+            updateRecordButton() {
+                if (this.isRecording) {
+                    this.recordBtn.innerHTML = '⏹️<br>Stop Recording';
+                    this.recordBtn.classList.add('recording');
+                } else {
+                    this.recordBtn.innerHTML = '🎤<br>Start Recording';
+                    this.recordBtn.classList.remove('recording');
+                }
+            }
+
+            updateStatus(message, className = '') {
+                this.status.textContent = message;
+                this.status.className = 'status ' + className;
+            }
+
+            updateTextOutput() {
+                const displayText = this.finalTranscript + this.interimTranscript;
+                if (displayText.trim()) {
+                    this.textOutput.textContent = displayText;
+                    this.textOutput.classList.add('has-content');
+                } else {
+                    this.textOutput.textContent = 'Your converted text will appear here...';
+                    this.textOutput.classList.remove('has-content');
+                }
+            }
+
+            addTimestamp() {
+                if (this.finalTranscript.trim()) {
+                    const timestamp = new Date().toLocaleString();
+                    this.finalTranscript += `\n\n[${timestamp}]\n`;
+                    this.updateTextOutput();
+                }
+            }
+
+            changeLanguage() {
+                if (this.recognition) {
+                    this.recognition.lang = this.languageSelect.value;
+                }
+            }
+
+            async copyText() {
+                const text = this.finalTranscript.trim();
+                if (!text) {
+                    this.showError('No text to copy');
+                    return;
+                }
+
+                try {
+                    await navigator.clipboard.writeText(text);
+                    this.showSuccess('Text copied to clipboard!');
+                } catch (err) {
+                    // Fallback for older browsers
+                    this.fallbackCopyText(text);
+                }
+            }
+
+            fallbackCopyText(text) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    this.showSuccess('Text copied to clipboard!');
+                } catch (err) {
+                    this.showError('Could not copy text');
+                }
+                document.body.removeChild(textArea);
+            }
+
+            downloadText() {
+                const text = this.finalTranscript.trim();
+                if (!text) {
+                    this.showError('No text to download');
+                    return;
+                }
+
+                const blob = new Blob([text], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `voice-to-text-${new Date().toISOString().slice(0, 10)}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                this.showSuccess('Text file downloaded!');
+            }
+
+            async shareText() {
+                const text = this.finalTranscript.trim();
+                if (!text) {
+                    this.showError('No text to share');
+                    return;
+                }
+
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: 'Voice-to-Text Conversion',
+                            text: text
+                        });
+                        this.showSuccess('Text shared successfully!');
+                    } catch (err) {
+                        if (err.name !== 'AbortError') {
+                            this.showError('Could not share text');
+                        }
+                    }
+                } else {
+                    this.showError('Sharing not supported on this device');
+                }
+            }
+
+            clearText() {
+                this.finalTranscript = '';
+                this.interimTranscript = '';
+                this.updateTextOutput();
+                this.updateStatus('Text cleared. Click microphone to start recording');
+                this.clearMessages();
+            }
+
+            handleSpeechError(error) {
+                let message = 'Speech recognition error: ';
+                switch (error) {
+                    case 'no-speech':
+                        message = 'No speech detected. Please try again.';
+                        break;
+                    case 'audio-capture':
+                        message = 'Microphone not accessible. Please check permissions.';
+                        break;
+                    case 'not-allowed':
+                        message = 'Microphone permission denied. Please allow microphone access.';
+                        break;
+                    case 'network':
+                        message = 'Network error. Please check your internet connection.';
+                        break;
+                    default:
+                        message += error;
+                }
+                this.showError(message);
+                this.updateStatus('Error occurred. Click to try again');
+            }
+
+            showError(message) {
+                this.clearMessages();
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = message;
+                this.messageArea.appendChild(errorDiv);
+                setTimeout(() => this.clearMessages(), 5000);
+            }
+
+            showSuccess(message) {
+                this.clearMessages();
+                const successDiv = document.createElement('div');
+                successDiv.className = 'success-message';
+                successDiv.textContent = message;
+                this.messageArea.appendChild(successDiv);
+                setTimeout(() => this.clearMessages(), 3000);
+            }
+
+            clearMessages() {
+                this.messageArea.innerHTML = '';
+            }
+        }
+
+        // Initialize the app when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new VoiceToTextConverter();
+        });
+
+        // Add PWA support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // Service worker registration would go here for offline support
+            });
+        }
+    </script>
+</body>
+</html>
