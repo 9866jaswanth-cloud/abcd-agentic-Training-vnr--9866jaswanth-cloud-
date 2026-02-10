@@ -1,0 +1,98 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyN5DcXJWZbvk3j0+oRRTsQ3",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/9866jaswanth-cloud/abcd-agentic-Training-vnr--9866jaswanth-cloud-/blob/main/tokenizer\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import re\n",
+        "\n",
+        "def tokenizer(text):\n",
+        "    tokens = re.findall(r'\\b\\w+\\b', text.lower())\n",
+        "    return tokens\n",
+        "\n",
+        "print(tokenizer(\"AI costs $100 in 2025!\"))\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "nwnnseEp0qLG",
+        "outputId": "201a1f67-8241-4788-99ff-c19fd28b2939"
+      },
+      "execution_count": 2,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "['ai', 'costs', '100', 'in', '2025']\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 3,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "WU3Z3jYE0hfU",
+        "outputId": "e3ff3c73-2400-4933-8b10-532ba4585a4d"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "['hello', 'world', 'nlp', 'is', 'fun']\n"
+          ]
+        }
+      ],
+      "source": [
+        "import re\n",
+        "\n",
+        "def tokenizer(text):\n",
+        "    # convert to lowercase\n",
+        "    text = text.lower()\n",
+        "\n",
+        "    # remove punctuation\n",
+        "    text = re.sub(r'[^a-z0-9\\s]', '', text)\n",
+        "\n",
+        "    # split into tokens\n",
+        "    tokens = text.split()\n",
+        "\n",
+        "    return tokens\n",
+        "\n",
+        "# Example\n",
+        "sentence = \"Hello, world! NLP is fun.\"\n",
+        "print(tokenizer(sentence))\n"
+      ]
+    }
+  ]
+}
