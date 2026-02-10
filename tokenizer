@@ -1,98 +1,78 @@
-{
-  "nbformat": 4,
-  "nbformat_minor": 0,
-  "metadata": {
-    "colab": {
-      "provenance": [],
-      "authorship_tag": "ABX9TyN5DcXJWZbvk3j0+oRRTsQ3",
-      "include_colab_link": true
-    },
-    "kernelspec": {
-      "name": "python3",
-      "display_name": "Python 3"
-    },
-    "language_info": {
-      "name": "python"
-    }
-  },
-  "cells": [
-    {
-      "cell_type": "markdown",
-      "metadata": {
-        "id": "view-in-github",
-        "colab_type": "text"
-      },
-      "source": [
-        "<a href=\"https://colab.research.google.com/github/9866jaswanth-cloud/abcd-agentic-Training-vnr--9866jaswanth-cloud-/blob/main/tokenizer\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
-      ]
-    },
-    {
-      "cell_type": "code",
-      "source": [
-        "import re\n",
-        "\n",
-        "def tokenizer(text):\n",
-        "    tokens = re.findall(r'\\b\\w+\\b', text.lower())\n",
-        "    return tokens\n",
-        "\n",
-        "print(tokenizer(\"AI costs $100 in 2025!\"))\n"
-      ],
-      "metadata": {
-        "colab": {
-          "base_uri": "https://localhost:8080/"
-        },
-        "id": "nwnnseEp0qLG",
-        "outputId": "201a1f67-8241-4788-99ff-c19fd28b2939"
-      },
-      "execution_count": 2,
-      "outputs": [
-        {
-          "output_type": "stream",
-          "name": "stdout",
-          "text": [
-            "['ai', 'costs', '100', 'in', '2025']\n"
-          ]
-        }
-      ]
-    },
-    {
-      "cell_type": "code",
-      "execution_count": 3,
-      "metadata": {
-        "colab": {
-          "base_uri": "https://localhost:8080/"
-        },
-        "id": "WU3Z3jYE0hfU",
-        "outputId": "e3ff3c73-2400-4933-8b10-532ba4585a4d"
-      },
-      "outputs": [
-        {
-          "output_type": "stream",
-          "name": "stdout",
-          "text": [
-            "['hello', 'world', 'nlp', 'is', 'fun']\n"
-          ]
-        }
-      ],
-      "source": [
-        "import re\n",
-        "\n",
-        "def tokenizer(text):\n",
-        "    # convert to lowercase\n",
-        "    text = text.lower()\n",
-        "\n",
-        "    # remove punctuation\n",
-        "    text = re.sub(r'[^a-z0-9\\s]', '', text)\n",
-        "\n",
-        "    # split into tokens\n",
-        "    tokens = text.split()\n",
-        "\n",
-        "    return tokens\n",
-        "\n",
-        "# Example\n",
-        "sentence = \"Hello, world! NLP is fun.\"\n",
-        "print(tokenizer(sentence))\n"
-      ]
-    }
-  ]
-}
+# --- BPE Implementation ---
+def get_pair_frequencies(tokenized_words):
+    pairs = Counter()
+    for symbols in tokenized_words:
+        for i in range(len(symbols) - 1):
+            pairs[(symbols[i], symbols[i+1])] += 1
+    return pairs
+
+def merge_pair(tokenized_words, pair):
+    a, b = pair
+    merged_token = a + '·' + b  # visual joiner
+    new_words = []
+    for symbols in tokenized_words:
+        i = 0
+        new_symbols = []
+        while i < len(symbols):
+            if i < len(symbols) - 1 and symbols[i] == a and symbols[i+1] == b:
+                new_symbols.append(merged_token)
+                i += 2
+            else:
+                new_symbols.append(symbols[i])
+                i += 1
+        new_words.append(new_symbols)
+    return new_words
+
+def learn_bpe(corpus, target_vocab_size=60, verbose=True):
+    words = []
+    for line in corpus:
+        words.extend(simple_preprocess(line))
+    tokenized_words = [list(w) + ['</w>'] for w in words]
+    vocab = set(sym for w in tokenized_words for sym in w)
+    merges = []
+    if verbose:
+        print(f'Initial vocab size: {len(vocab)}')
+        print('Sample word:', tokenized_words[0])
+    while len(vocab) < target_vocab_size:
+        pair_freq = get_pair_frequencies(tokenized_words)
+        if not pair_freq:
+            break
+        best_pair, best_freq = pair_freq.most_common(1)[0]
+        tokenized_words = merge_pair(tokenized_words, best_pair)
+        merged_token = best_pair[0] + '·' + best_pair[1]
+        merges.append(best_pair)
+        vocab.add(merged_token)
+        if verbose:
+            print(f"Merge {len(merges):>3}: {best_pair} -> '{merged_token}' (freq={best_freq}) | vocab={len(vocab)}")
+    return merges, vocab, tokenized_words
+
+def bpe_tokenize(word, merges):
+    symbols = list(word) + ['</w>']
+    for a, b in merges:
+        i = 0
+        merged = []
+        while i < len(symbols):
+            if i < len(symbols) - 1 and symbols[i] == a and symbols[i+1] == b:
+                merged.append(a + '·' + b)
+                i += 2
+            else:
+                merged.append(symbols[i])
+                i += 1
+        symbols = merged
+    return symbols
+
+corpus = [
+    'pizza is tasty',
+    'pizzazz is flashy',
+    'unbelievable flavors of pizzas',
+    'i love pineapple pizza',
+    'cheese on pizza is great',
+    'pizzerias serve pizza',
+]
+merges, vocab, tokenized_words = learn_bpe(corpus, target_vocab_size=60, verbose=True)
+print('\nFirst 15 merges:')
+for i, m in enumerate(merges[:15], 1):
+    print(f'{i:>2}. {m}')
+print('\nBPE tokenize examples:')
+for w in ['pizza', 'pizzazz', 'pineapple', 'unbelievable']:
+    print(w, '->', bpe_tokenize(w, merges))
