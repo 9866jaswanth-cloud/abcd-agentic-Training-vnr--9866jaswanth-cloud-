@@ -1,0 +1,213 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyPhD1N/BQcDkTjPJ1UZ5T2v",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/9866jaswanth-cloud/abcd-agentic-Training-vnr--9866jaswanth-cloud-/blob/main/implementation%20of%20cosine%20search%20and%20other%20algorithms\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 1,
+      "metadata": {
+        "id": "GPgTMowF4Ssp"
+      },
+      "outputs": [],
+      "source": [
+        "E = {\n",
+        "  \"king\":  [0.9, 0.8, 0.1, 0.0],\n",
+        "  \"queen\": [0.88, 0.82, 0.12, 0.02],\n",
+        "  \"man\":   [0.75, 0.60, 0.05, -0.02],\n",
+        "  \"woman\": [0.72, 0.62, 0.07,  0.00],\n",
+        "  \"chef\":  [0.10, 0.22, 0.85,  0.40],\n",
+        "}"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def cos_sim(a,b):\n",
+        "    import math\n",
+        "    dot = sum(x*y for x,y in zip(a,b))\n",
+        "    na  = math.sqrt(sum(x*x for x in a))\n",
+        "    nb  = math.sqrt(sum(y*y for y in b))\n",
+        "    return dot/(na*nb)"
+      ],
+      "metadata": {
+        "id": "FSCo-zPe4W_4"
+      },
+      "execution_count": 2,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "sorted([(w, cos_sim(E[\"queen\"], v)) for w,v in E.items() if w!=\"queen\"],\n",
+        "       key=lambda x: x[1], reverse=True)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "GW6whtTE4Z6f",
+        "outputId": "06599bf5-5edc-48a4-85a4-79f1e9b40be9"
+      },
+      "execution_count": 3,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "[('king', 0.9994525047495437),\n",
+              " ('woman', 0.9987652835589712),\n",
+              " ('man', 0.9953584400375494),\n",
+              " ('chef', 0.3226748570228522)]"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 3
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from collections import Counter\n",
+        "\n",
+        "query = \"learning ai\"\n",
+        "docs = [\n",
+        "    \"machine learning is fun\",\n",
+        "    \"deep learning and ai\",\n",
+        "    \"java programming basics\"\n",
+        "]\n",
+        "\n",
+        "def manhattan_search(query, docs):\n",
+        "    qv = Counter(query.split())\n",
+        "    result = []\n",
+        "    for d in docs:\n",
+        "        dv = Counter(d.split())\n",
+        "        keys = set(qv) | set(dv)\n",
+        "        result.append(sum(abs(qv[k] - dv[k]) for k in keys))\n",
+        "    return result\n",
+        "\n",
+        "print(manhattan_search(query, docs))\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "bajAtZnw4804",
+        "outputId": "cbaba801-68ce-41d6-9807-6c41bc405f9d"
+      },
+      "execution_count": 7,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "[4, 2, 5]\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from collections import Counter\n",
+        "import math\n",
+        "\n",
+        "query = \"learning ai\"\n",
+        "docs = [\n",
+        "    \"machine learning is fun\",\n",
+        "    \"deep learning and ai\",\n",
+        "    \"java programming basics\"\n",
+        "]\n",
+        "\n",
+        "def euclidean_search(query, docs):\n",
+        "    qv = Counter(query.split())\n",
+        "    result = []\n",
+        "    for d in docs:\n",
+        "        dv = Counter(d.split())\n",
+        "        keys = set(qv) | set(dv)\n",
+        "        result.append(round(math.sqrt(sum((qv[k]-dv[k])**2 for k in keys)), 3))\n",
+        "    return result\n",
+        "\n",
+        "print(euclidean_search(query, docs))\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "byrKmORy5oPZ",
+        "outputId": "d7d63e30-481d-4854-d61f-11455f673368"
+      },
+      "execution_count": 8,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "[2.0, 1.414, 2.236]\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "query = \"learning ai\"\n",
+        "docs = [\n",
+        "    \"machine learning is fun\",\n",
+        "    \"deep learning and ai\",\n",
+        "    \"java programming basics\"\n",
+        "]\n",
+        "\n",
+        "def jaccard_search(query, docs):\n",
+        "    q = set(query.split())\n",
+        "    return [\n",
+        "        round(len(q & set(d.split())) / len(q | set(d.split())), 3)\n",
+        "        for d in docs\n",
+        "    ]\n",
+        "\n",
+        "print(jaccard_search(query, docs))\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "92-boNIw5scc",
+        "outputId": "dfba054d-6e91-4543-e935-45d11bc839c9"
+      },
+      "execution_count": 9,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "[0.2, 0.5, 0.0]\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
